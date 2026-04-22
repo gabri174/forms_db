@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import './styles/app.css';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import PublicFormPage from './pages/PublicFormPage';
 
 export default function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
@@ -14,6 +15,12 @@ export default function App() {
 
   if (loading) {
     return <div className="loading-screen">Cargando...</div>;
+  }
+
+  // Ruta pública para el formulario de registro
+  const path = window.location.pathname;
+  if (path === '/registro' || path === '/formulario' || path === '/register') {
+    return <PublicFormPage />;
   }
 
   return token ? (

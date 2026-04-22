@@ -39,6 +39,28 @@ interface Company {
   [key: string]: any;
 }
 
+interface CompanyData {
+  nombre_comercial: string;
+  razon_social: string;
+  identificacion_fiscal: string;
+  sector_industria: string;
+  propuesta_valor?: string;
+  ubicacion: string;
+  sitio_web?: string;
+  redes_sociales?: Record<string, string>;
+  paleta_colores?: Record<string, string>;
+  branding_notas?: string;
+  dueno_nombre_completo: string;
+  dueno_documento_identidad: string;
+  dueno_cargo?: string;
+  dueno_email?: string;
+  dueno_telefono?: string;
+  dueno_perfil_profesional?: string;
+  vision?: string;
+  mision?: string;
+  publico_objetivo?: string;
+  historial_marca?: string;
+}
 
 // --- HELPERS ---
 async function verifyAuth(request: Request, env: Env): Promise<User | null> {
@@ -141,13 +163,13 @@ router.get('/api/companies', async (request, env: Env) => {
   return json(companies.results);
 });
 
-// Crear empresa
+// Crear empresa (requiere auth)
 router.post('/api/companies', async (request, env: Env) => {
   const user = await verifyAuth(request, env);
   if (!user || user.role === 'viewer') return json({ error: 'No autorizado' }, { status: 403 });
 
   try {
-    const data = await request.json();
+    const data = await request.json() as CompanyData;
     const result = await env.DB.prepare(
       `INSERT INTO companies (nombre_comercial, razon_social, identificacion_fiscal, sector_industria, ubicacion, dueno_nombre_completo, created_by) 
        VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -161,6 +183,67 @@ router.post('/api/companies', async (request, env: Env) => {
     return json({ error: e.message }, { status: 500 });
   }
 });
+
+// Formulario público - Registrar empresa (sin autenticación)
+router.post('/api/public/register-company', async (request, env: Env) => {
+  try {
+    const data = await request.json() as CompanyData;
+    
+    // Validar campos obligatorios
+    const required: (keyof CompanyData)[] = ['nombre_comercial', 'razon_social', 'identificacion_fiscal', 'sector_industria', 'ubicacion', 'dueno_nombre_completo', 'dueno_documento_identidad'];
+    for (const field of required) {
+      if (!data[field]) {
+        return json({ error: `Campo obligatorio faltante: ${field}` }, { status: 400 });
+      }
+    }
+
+    const result = await env.DB.prepare(
+      `INSERT INTO companies (
+        nombre_comercial, razon_social, identificacion_fiscal, sector_industria, 
+        propuesta_valor, ubicacion, sitio_web, redes_sociales, paleta_colores, branding_notas,
+        dueno_nombre_completo, dueno_documento_identidad, dueno_cargo, dueno_email, dueno_telefono, dueno_perfil_profesional,
+        vision, mision, publico_objetivo, historial_marca,
+        created_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      data.nombre_comercial,
+      data.razon_social,
+      data.identificacion_fiscal,
+      data.sector_industria,
+      data.propuesta_valor || null,
+      data.ubicacion,
+      data.sitio_web || null,
+      data.redes_sociales ? JSON.stringify(data.redes_sociales) : null,
+      data.paleta_colores ? JSON.stringify(data.paleta_colores) : null,
+      data.branding_notas || null,
+      data.dueno_nombre_completo,
+      data.dueno_documento_identidad,
+      data.dueno_cargo || null,
+      data.dueno_email || null,
+      data.dueno_telefono || null,
+      data.dueno_perfil_profesional || null,
+      data.vision || null,
+      data.mision || null,
+      data.publico_objetivo || null,
+      data.historial_marca || null,
+      'public-form' // created_by especial para formulario público
+    ).run();
+
+    return json({ 
+      success: true, 
+      message: 'Empresa registrada correctamente',
+      id: result.meta.last_row_id 
+    }, { status: 201 });
+  } catch (e: any) {
+    if (e.message.includes('UNIQUE constraint failed')) {
+      return json({ error: 'Ya existe una empresa con esa identificación fiscal' }, { status: 409 });
+    }
+    return json({ error: e.message }, { status: 500 });
+  }
+});
+
+// Health check
+router.get('/api/health', () => json({ status: 'ok', timestamp: new Date().toISOString() }));
 
 // --- EXPORT DEFAULT (AutoRouter maneja todo automáticamente) ---
 export default router;
