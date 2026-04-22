@@ -1,14 +1,26 @@
 // src/index.ts - Cloudflare Worker
 /// <reference types="@cloudflare/workers-types" />
-import { Router, json } from 'itty-router';
-
-const router = Router();
+import { AutoRouter, json, cors } from 'itty-router';
 
 // --- TIPOS ---
 interface Env {
   DB: D1Database;
   JWT_SECRET: string;
+  API_CORS_ORIGIN: string;
 }
+
+// CORS con el origen correcto
+const { preflight, corsify } = cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400,
+});
+
+const router = AutoRouter({
+  before: [preflight],
+  finally: [corsify],
+});
 
 interface User {
   id: string;
@@ -27,14 +39,6 @@ interface Company {
   [key: string]: any;
 }
 
-// --- CORS CONFIG ---
-// Al principio de index.ts, quita la URL fija y usa esto:
-const getCorsHeaders = (env: Env) => ({
-  'Access-Control-Allow-Origin': env.API_CORS_ORIGIN || '*', 
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Max-Age': '86400',
-});
 
 // --- HELPERS ---
 async function verifyAuth(request: Request, env: Env): Promise<User | null> {
@@ -158,37 +162,5 @@ router.post('/api/companies', async (request, env: Env) => {
   }
 });
 
-// --- EXPORT DEFAULT (EL MOTOR) ---
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const corsHeaders = getCorsHeaders(env);
-
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
-    }
-
-    try {
-      const response = await router.handle(request, env);
-      
-      if (!response) {
-        return new Response(JSON.stringify({ error: "Not Found" }), { 
-          status: 404, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        });
-      }
-
-      // Inyectar CORS en la respuesta del router
-      const finalResponse = new Response(response.body, response);
-      Object.entries(corsHeaders).forEach(([key, value]) => {
-        finalResponse.headers.set(key, value);
-      });
-
-      return finalResponse;
-    } catch (err: any) {
-      return new Response(JSON.stringify({ error: "Server Error", details: err.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-  },
-};
+// --- EXPORT DEFAULT (AutoRouter maneja todo automáticamente) ---
+export default router;
