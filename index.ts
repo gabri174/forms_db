@@ -226,7 +226,7 @@ router.post('/api/public/register-company', async (request, env: Env) => {
       data.mision || null,
       data.publico_objetivo || null,
       data.historial_marca || null,
-      'public-form' // created_by especial para formulario público
+      'system-public' // Usuario especial para formulario público
     ).run();
 
     return json({ 

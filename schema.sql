@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS companies (
   -- Metadata
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  created_by TEXT NOT NULL,
-  FOREIGN KEY (created_by) REFERENCES users(id)
+  created_by TEXT, -- Puede ser NULL para formulario público
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Índices para búsquedas rápidas
