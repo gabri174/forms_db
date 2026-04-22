@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Directorios de build
+dist/
+.wrangler/
+
+# Variables de entorno (contienen secretos)
+.env
+.env.local
+.env.*
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos con secretos hardcodeados (se regeneran con wrangler types)
+worker-configuration.d.ts
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

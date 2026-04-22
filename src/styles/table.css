@@ -1,0 +1,12 @@
+.table-container { width: 100%; overflow-x: auto; }
+.companies-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.companies-table thead { background: #f5f5f5; border-bottom: 2px solid var(--primary); }
+.companies-table th { padding: var(--spacing-md); text-align: left; font-weight: 600; white-space: nowrap; }
+.companies-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.2s; }
+.companies-table tbody tr:hover { background: #f9f9f9; }
+.companies-table td { padding: var(--spacing-md); vertical-align: middle; }
+.cell-name { font-weight: 600; color: var(--primary); }
+.cell-id { font-family: monospace; font-size: 12px; color: #666; }
+.cell-date { color: #999; font-size: 12px; }
+.btn-edit { background: transparent; border: 1px solid var(--primary); color: var(--primary); width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+.btn-edit:hover { background: var(--primary); color: white; }

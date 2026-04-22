@@ -1,0 +1,12 @@
+name = "form-empresas-backend"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Aquí pon la URL donde va a vivir tu Frontend
+API_CORS_ORIGIN = "https://forms.ensupresencia.eu" 
+
+[[d1_databases]]
+binding = "DB"
+database_name = "empresas_db"
+database_id = "0d5348e9-01e7-4e07-8192-21560a03f367"
